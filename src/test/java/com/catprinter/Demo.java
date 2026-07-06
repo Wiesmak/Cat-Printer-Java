@@ -11,7 +11,7 @@ import java.util.List;
 public class Demo {
     public static void main(String[] args) throws Exception {
         try (BleTransport transport = BleTransport.platformDefault();
-            CatPrinter printer = new CatPrinter(transport)) {
+            Printer printer = new CatPrinter(transport)) {
 
                 List<BleDevice> devices = printer.scan(Duration.ofSeconds(4));
                 System.out.println("Found" + devices);

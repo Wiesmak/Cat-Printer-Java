@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class CatPrinter implements AutoCloseable {
+public final class CatPrinter implements Printer {
 
     private static final int DEFAULT_MTU = 200;
     private static final long INTER_CHUNK_DELAY_MS = 20;
@@ -42,10 +42,12 @@ public final class CatPrinter implements AutoCloseable {
         this.commander = new Commander(this::queue);
     }
 
+    @Override
     public List<BleDevice> scan(Duration timeout) {
         return scan(timeout, null);
     }
 
+    @Override
     public List<BleDevice> scan(Duration timeout, String modelFilter) {
         List<BleDevice> all = transport.scan(timeout);
         List<BleDevice> filtered = new ArrayList<>();
@@ -59,10 +61,12 @@ public final class CatPrinter implements AutoCloseable {
         return filtered;
     }
 
+    @Override
     public void connect(BleDevice device) {
         connect(device, DEFAULT_CONNECT_TIMEOUT);
     }
 
+    @Override
     public void connect(BleDevice device, Duration timeout) {
         currentModel = registry.getOrUnknown(device.name());
         transport.connect(device, timeout);
@@ -71,6 +75,7 @@ public final class CatPrinter implements AutoCloseable {
         paused.set(false);
     }
 
+    @Override
     public void setEnergy(int energy) {
         if (energy < 0 || energy > 0xFFFF) {
             throw new IllegalArgumentException("energy out of range 0..0xFFFF: " + energy);
@@ -78,15 +83,18 @@ public final class CatPrinter implements AutoCloseable {
         this.energy = energy;
     }
 
+    @Override
     public void setSpeed(int speed) {
         this.speed = speed;
     }
 
+    @Override
     public void setFlip(boolean horizontal, boolean vertical) {
         this.flipH = horizontal;
         this.flipV = vertical;
     }
 
+    @Override
     public void setMtu(int mtu) {
         if (mtu < 20) {
             throw new IllegalArgumentException("mtu too small: " + mtu);
@@ -94,10 +102,12 @@ public final class CatPrinter implements AutoCloseable {
         this.mtu = mtu;
     }
 
+    @Override
     public void printBitmap(byte[] pbmData) {
         printBitmap(new ByteArrayInputStream(pbmData));
     }
 
+    @Override
     public void printBitmap(InputStream pbm) {
         PrinterModel model = requireModel();
         PrinterData data = new PrinterData(model.paperWidth());
@@ -117,6 +127,7 @@ public final class CatPrinter implements AutoCloseable {
         finish(model);
     }
 
+    @Override
     public void printText(String text, TextOptions opts, byte[] pf2FontData) {
         PrinterModel model = requireModel();
         Pf2Font font;
