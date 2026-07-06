@@ -1,19 +1,12 @@
 package com.catprinter;
 
-import com.catprinter.ble.BleDevice;
-
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 
 public interface Printer extends AutoCloseable {
-    List<BleDevice> scan(Duration timeout);
+    void connect(BluetoothDevice device);
 
-    List<BleDevice> scan(Duration timeout, String modelFilter);
-
-    void connect(BleDevice device);
-
-    void connect(BleDevice device, Duration timeout);
+    void connect(BluetoothDevice device, Duration timeout);
 
     void setEnergy(int energy);
 

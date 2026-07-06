@@ -1,7 +1,5 @@
 package com.catprinter;
 
-import com.catprinter.ble.BleDevice;
-import com.catprinter.ble.BleTransport;
 import com.catprinter.command.Commander;
 import com.catprinter.data.PbmReader;
 import com.catprinter.data.PrinterData;
@@ -24,7 +22,7 @@ public final class CatPrinter implements Printer {
     private static final long INTER_CHUNK_DELAY_MS = 20;
     private static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(5);
 
-    private final BleTransport transport;
+    private final BluetoothConnection connection;
     private final ModelRegistry registry = new ModelRegistry();
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private final ByteArrayOutputStream pending = new ByteArrayOutputStream();
@@ -37,40 +35,21 @@ public final class CatPrinter implements Printer {
     private boolean flipH;
     private boolean flipV;
 
-    public CatPrinter(BleTransport transport) {
-        this.transport = transport;
+    public CatPrinter(BluetoothConnection transport) {
+        this.connection = transport;
         this.commander = new Commander(this::queue);
     }
 
     @Override
-    public List<BleDevice> scan(Duration timeout) {
-        return scan(timeout, null);
-    }
-
-    @Override
-    public List<BleDevice> scan(Duration timeout, String modelFilter) {
-        List<BleDevice> all = transport.scan(timeout);
-        List<BleDevice> filtered = new ArrayList<>();
-        for (BleDevice d : all) {
-            if (registry.isValidModel(d.name())) {
-                if (modelFilter == null || (d.name() != null && d.name().startsWith(modelFilter))) {
-                    filtered.add(d);
-                }
-            }
-        }
-        return filtered;
-    }
-
-    @Override
-    public void connect(BleDevice device) {
+    public void connect(BluetoothDevice device) {
         connect(device, DEFAULT_CONNECT_TIMEOUT);
     }
 
     @Override
-    public void connect(BleDevice device, Duration timeout) {
+    public void connect(BluetoothDevice device, Duration timeout) {
         currentModel = registry.getOrUnknown(device.name());
-        transport.connect(device, timeout);
-        transport.subscribeNotifications(Commander.RX_CHARACTERISTIC, this::handleNotification);
+        connection.connect(device, timeout);
+        connection.subscribeNotifications(Commander.RX_CHARACTERISTIC, this::handleNotification);
         pending.reset();
         paused.set(false);
     }
@@ -157,11 +136,11 @@ public final class CatPrinter implements Printer {
     @Override
     public void close() {
         try {
-            transport.unsubscribeNotifications(Commander.RX_CHARACTERISTIC);
+            connection.unsubscribeNotifications(Commander.RX_CHARACTERISTIC);
+            connection.disconnect();
         } catch (RuntimeException ignored) {
             // best-effort
         }
-        transport.close();
     }
 
     private void emitPage(byte[] page, int rowBytes) {
@@ -238,7 +217,7 @@ public final class CatPrinter implements Printer {
             }
             int len = Math.min(mtu, all.length - off);
             byte[] chunk = Arrays.copyOfRange(all, off, off + len);
-            transport.writeCharacteristic(Commander.TX_CHARACTERISTIC, chunk);
+            connection.writeCharacteristic(Commander.TX_CHARACTERISTIC, chunk);
             off += len;
             sleep(INTER_CHUNK_DELAY_MS);
         }

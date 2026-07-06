@@ -1,5 +1,6 @@
 package com.catprinter.ble.windows;
 
+import com.catprinter.BluetoothDevice;
 import com.catprinter.ble.BleDevice;
 import com.catprinter.ble.BleTransport;
 
@@ -67,7 +68,7 @@ public final class WindowsTransport implements BleTransport {
     }
 
     @Override
-    public List<BleDevice> scan(Duration timeout) {
+    public List<BluetoothDevice> scan(Duration timeout) {
         Map<String, Object> params = new LinkedHashMap<>();
         params.put("timeout_ms", (int) timeout.toMillis());
         Map<String, Object> reply;
@@ -76,7 +77,7 @@ public final class WindowsTransport implements BleTransport {
         } catch (IOException e) {
             throw new RuntimeException("scan failed: " + e.getMessage(), e);
         }
-        List<BleDevice> result = new ArrayList<>();
+        List<BluetoothDevice> result = new ArrayList<>();
         for (Map<String, Object> dev : HelperProcess.devicesFrom(reply)) {
             String name = String.valueOf(dev.getOrDefault("name", ""));
             String address = String.valueOf(dev.get("address"));
@@ -86,7 +87,7 @@ public final class WindowsTransport implements BleTransport {
     }
 
     @Override
-    public void connect(BleDevice device, Duration timeout) {
+    public void connect(BluetoothDevice device, Duration timeout) {
         Map<String, Object> params = new LinkedHashMap<>();
         params.put("address", device.address());
         try {

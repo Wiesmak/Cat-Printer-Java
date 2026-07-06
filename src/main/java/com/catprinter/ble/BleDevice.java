@@ -1,21 +1,21 @@
 package com.catprinter.ble;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
-public final class BleDevice {
-
-    private final String name;
-    private final String address;
+public record BleDevice(
+    String name,
+    String address
+) implements com.catprinter.BluetoothDevice {
 
     public BleDevice(String name, String address) {
         this.name = name;
         this.address = Objects.requireNonNull(address, "address");
     }
 
-    public String name() { return name; }
-    public String address() { return address; }
-
     @Override
+    @NotNull
     public String toString() {
         return (name == null ? "<unnamed>" : name) + " (" + address + ")";
     }

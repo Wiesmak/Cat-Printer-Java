@@ -25,6 +25,7 @@ dependencies {
     //   into resources at build time.
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    compileOnly("org.jetbrains:annotations:26.1.0")
 }
 
 tasks.named<Test>("test") {
@@ -37,7 +38,7 @@ tasks.withType<Javadoc>().configureEach {
 
 val helperExe = file("windows-helper/dist/cat-printer-ble-helper.exe")
 
-tasks.named<org.gradle.language.jvm.tasks.ProcessResources>("processResources") {
+tasks.named<ProcessResources>("processResources") {
     if (helperExe.exists()) {
         from(helperExe) {
             into("com/catprinter/ble/windows")

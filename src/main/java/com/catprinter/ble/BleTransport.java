@@ -1,14 +1,18 @@
 package com.catprinter.ble;
 
+import com.catprinter.BluetoothAdapter;
+import com.catprinter.BluetoothConnection;
+import com.catprinter.BluetoothDevice;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface BleTransport extends AutoCloseable {
+public interface BleTransport extends BluetoothConnection, BluetoothAdapter {
 
-    List<BleDevice> scan(Duration timeout);
+    List<BluetoothDevice> scan(Duration timeout);
 
-    void connect(BleDevice device, Duration timeout);
+    void connect(BluetoothDevice device, Duration timeout);
 
     void disconnect();
 
